@@ -1,11 +1,146 @@
 <!DOCTYPE html>
 <html>
-   <head>
-    <title>Shell Site :3</title>
-      <meta property="og:title" content="Shell Site :3">
-      <link rel="icon" type="image/x-icon" href="https://squishy6094.github.io/images/shellSite/shell-icon.png">
-      <meta property="og:description" content="shhh don't tell squishy">
-      <meta property="og:image" content="https://squishy6094.github.io/images/shellSite/shell-icon.png">
-      <meta http-equiv = "refresh" content = "0; url = https://squishy6094.github.io/shell" />
-   </head>
+<head>
+    <!-- Embed -->
+    <title>Shell's Hideout</title>
+    <meta property="og:title" content="Shell's Hideout">
+    <meta property="og:description" content="Shell's awesome cool amazing bombastic website!!! >w<">
+    <!-- 
+    <link rel="icon" type="image/x-icon" href="images/icons/hat-logo.png">
+    <meta property="og:image" content="https://squishy6094.github.io/images/icons/hat-logo.png">
+    -->
+    <style>
+        body {
+            background-color: #0b0816;
+        }
+    </style>
+</head>
+
+<script type="text/javascript" src="djui-js/djui.js"></script>
+<script type="text/javascript">
+    // Utilities
+    function lerp( a, b, alpha ) {
+        return a + alpha * ( b - a )
+    }
+
+
+    function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    TEX_INFO_BOX_CORNERS = get_texture_info("textures/round-corners.png")
+    function djui_hud_render_info_box(x, y, width, height) {
+        // Render Back
+        djui_hud_set_color(0, 0, 0, 255)
+        djui_hud_render_rect(x + 3, y + 3, width - 6, height - 6)
+
+        // Render Sides
+        djui_hud_set_color(255, 255, 255, 255)
+        djui_hud_render_rect(x, y + 2, 2, height - 7) // Left Line
+        djui_hud_render_rect(x + 2, y, width - 4, 2) // Top Line
+        djui_hud_render_rect(x + width - 2, y + 2, 2, height - 7) // Right Line
+        djui_hud_render_rect(x + 2, y + height - 5, width - 4, 2) // Bottom Line
+        // Render Corners
+        djui_hud_set_color(255, 255, 255, 255)
+        djui_hud_render_texture_tile(TEX_INFO_BOX_CORNERS, x, y, 0.5, 0.5, 0, 0, 6, 6) // Top Left
+        djui_hud_render_texture_tile(TEX_INFO_BOX_CORNERS, x, y + height - 6, 0.5, 0.5, 0, 10, 6, 6) // Bottom Left
+        djui_hud_render_texture_tile(TEX_INFO_BOX_CORNERS, x + width - 3, y, 0.5, 0.5, 10, 0, 6, 6) // Top Right
+        djui_hud_render_texture_tile(TEX_INFO_BOX_CORNERS, x + width - 3, y + height - 6, 0.5, 0.5, 10, 10, 6, 6) // Bottom Right
+    }
+
+    function djui_hud_render_text_buttons(string, x, y, scale) {
+        stringArray = string.split("|")
+        let textWidth = 0
+        let mouseX = djui_hud_get_mouse_x()
+        let mouseY = djui_hud_get_mouse_y()
+        let mouseHoverID = 0
+
+        for (let i = 0; i < stringArray.length; i++) {
+            let currTextWidth = djui_hud_measure_text(stringArray[i])*scale
+            if ((mouseX > x + textWidth && mouseX < x + textWidth + currTextWidth) && (mouseY > y && mouseY < y + 16*scale)) {
+                djui_hud_set_color(255, 255, 255, 255)
+                mouseHoverID = i + 1
+            } else {
+                djui_hud_set_color(157, 148, 255, 255)
+            }
+            djui_hud_print_text(stringArray[i], x + textWidth, y, scale)
+            textWidth = textWidth + currTextWidth
+            djui_hud_set_color(157, 148, 255, 255)
+            if (i + 1 < stringArray.length) {
+                djui_hud_print_text("|", x + textWidth, y, scale)
+                textWidth = textWidth + djui_hud_measure_text("|")*scale
+            }
+        }
+        return mouseHoverID
+    }
+
+    // Website
+    globalTimer = 0
+
+    starList = []
+    djui_hud_set_resolution(RESOLUTION_N64)
+    for (let i = 0; i < 100; i++) {
+        starList.push({
+            x: Math.random()*djui_hud_get_screen_width(),
+            y: Math.random()*djui_hud_get_screen_height(),
+            scale:Math.ceil(Math.random()*2),
+            brightness:Math.random(),
+            timerOffset:Math.random()*150,
+            speed:Math.random()*0.2,
+        })
+    }
+
+    bgRectCount = 10
+    function hud_render() {
+
+        djui_hud_set_resolution(RESOLUTION_N64)
+        screenWidth = djui_hud_get_screen_width()
+        screenHeight = djui_hud_get_screen_height()
+
+        // Render BG Gradient
+        djui_hud_set_color(27, 22, 45, 35)
+        for (let i = 0; i < bgRectCount; i++) {
+            djui_hud_render_rect(0, 0, screenWidth, screenHeight*(i/bgRectCount) + Math.sin((globalTimer - i * 15)*0.025)*10)
+        }
+        // Render BG Stars
+        for (let i in starList) {
+            starList[i].x = starList[i].x + starList[i].speed*starList[i].brightness
+            starList[i].y = starList[i].y + starList[i].speed*starList[i].brightness
+            if (starList[i].x > screenWidth) {
+                starList[i].x = -10
+            }
+            if (starList[i].y > screenHeight) {
+                starList[i].y = -10
+            }
+            djui_hud_set_color(107, 94, 255, (Math.sin((globalTimer + starList[i].timerOffset)*0.01)/Math.PI*127 + 127)*starList[i].brightness)
+            djui_hud_render_rect(starList[i].x, starList[i].y, starList[i].scale, starList[i].scale)
+        }
+
+        // Render Playlist Bg
+        djui_hud_set_rotation(-0x400 * screenHeight/320, 0.5, 0)
+        djui_hud_set_color(255, 255, 255, 255)
+        djui_hud_render_rect(-20, screenHeight - 40, screenWidth + 40, 60)
+        djui_hud_set_color(157, 148, 255, 255)
+        djui_hud_render_rect(-20, screenHeight - 36, screenWidth + 40, 60)
+        djui_hud_set_color(0, 0, 0, 255)
+        djui_hud_render_rect(-20, screenHeight - 35, screenWidth + 40, 60)
+        djui_hud_set_rotation(0, 0, 0)
+
+
+        djui_hud_render_info_box(screenWidth - 132, -20, 130, 44)
+        djui_hud_print_text("Welcome, Enjoy your stay!", screenWidth - 127, 6, 0.4)
+
+        djui_hud_render_info_box(screenWidth - 132, 30, 130, 80)
+        djui_hud_render_text_buttons("INFO | GALLERY | CHANGELOG", screenWidth - 132 + 5, 30 + 5, 0.3)
+
+        djui_hud_set_color(255, 255, 255, 255)
+        // djui_hud_print_text("Haii i'm like soo gayy", screenWidth - 132 + 5, 30 + 5, 0.3)
+        // djui_hud_print_text("Look at meee i'm faggalicious", screenWidth - 132 + 5, 30 + 15, 0.3)
+        djui_hud_print_text("WIP ma ball in your mouth", screenWidth - 132 + 5, 95, 0.3)
+
+        globalTimer = globalTimer + 1
+    }
+
+    hook_event(hud_render);   
+</script>
 </html>
