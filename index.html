@@ -27,6 +27,44 @@
     function clamp(value, min, max) {
         return Math.max(min, Math.min(max, value));
     }
+    
+    let commitMsg = ""
+    let commitDate = ""
+    async function get_commit_info() {
+        const apiUrl = 'https://api.github.com/repos/shell-x33/shell-x33.github.io/commits';
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            
+            const commits = await response.json();
+            const latestCommit = commits[0];
+
+            const COMMIT_MESSAGE = latestCommit.commit.message;
+            const rawDate = new Date(latestCommit.commit.author.date);
+
+            // Format the date to "YYYY-MM-DD HH:MM:SS" (local time)
+            const COMMIT_DATE = rawDate.toLocaleString('en-CA', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }).replace(',', '');
+
+            commitMsg = COMMIT_MESSAGE
+            commitDate = COMMIT_DATE
+
+            console.log("Latest Commit Message:", COMMIT_MESSAGE);
+            console.log("Latest Commit Date:", COMMIT_DATE);
+        } catch (error) {
+            console.error("Failed to fetch latest commit info:", error);
+        }
+    }
+
+    get_commit_info();
 
     TEX_INFO_BOX_CORNERS = get_texture_info("textures/round-corners.png")
     function djui_hud_render_info_box(x, y, width, height) {
@@ -57,7 +95,7 @@
 
         for (let i = 0; i < stringArray.length; i++) {
             let currTextWidth = djui_hud_measure_text(stringArray[i])*scale
-            if ((mouseX > x + textWidth && mouseX < x + textWidth + currTextWidth) && (mouseY > y && mouseY < y + 16*scale)) {
+            if ((mouseX > x + textWidth && mouseX < x + textWidth + currTextWidth) && (mouseY > y && mouseY < y + 20*scale)) {
                 djui_hud_set_color(255, 255, 255, 255)
                 mouseHoverID = i + 1
             } else {
@@ -77,6 +115,7 @@
     // Website
     globalTimer = 0
 
+    bgRectCount = 10
     starList = []
     djui_hud_set_resolution(RESOLUTION_N64)
     for (let i = 0; i < 100; i++) {
@@ -90,7 +129,8 @@
         })
     }
 
-    bgRectCount = 10
+    let currTab = 1
+
     function hud_render() {
 
         djui_hud_set_resolution(RESOLUTION_N64)
@@ -126,17 +166,35 @@
         djui_hud_render_rect(-20, screenHeight - 35, screenWidth + 40, 60)
         djui_hud_set_rotation(0, 0, 0)
 
-
+        // Enjoy your stay text
         djui_hud_render_info_box(screenWidth - 132, -20, 130, 44)
         djui_hud_print_text("Welcome, Enjoy your stay!", screenWidth - 127, 6, 0.4)
 
-        djui_hud_render_info_box(screenWidth - 132, 30, 130, 80)
-        djui_hud_render_text_buttons("INFO | GALLERY | CHANGELOG", screenWidth - 132 + 5, 30 + 5, 0.3)
-
+        // Basic info navigation
+        let infoNavWidth = 130
+        let infoNavHeight = 80
+        let infoNavX = screenWidth - infoNavWidth - 2
+        let infoNavY = 30
+        djui_hud_render_info_box(infoNavX, infoNavY, infoNavWidth, infoNavHeight)
+        let tabHover = djui_hud_render_text_buttons("INFO | GALLERY | CHANGELOG", infoNavX + infoNavWidth*0.5 - djui_hud_measure_text("INFO | GALLERY | CHANGELOG")*0.15, infoNavY + 6, 0.3)
         djui_hud_set_color(255, 255, 255, 255)
-        // djui_hud_print_text("Haii i'm like soo gayy", screenWidth - 132 + 5, 30 + 5, 0.3)
-        // djui_hud_print_text("Look at meee i'm faggalicious", screenWidth - 132 + 5, 30 + 15, 0.3)
-        djui_hud_print_text("WIP ma balls in your mouth", screenWidth - 132 + 5, 95, 0.3)
+        djui_hud_render_rect(infoNavX + 5, infoNavY + 15, infoNavWidth - 10, 1)
+        currTab = tabHover != 0 ? tabHover : currTab
+
+        switch(currTab) {
+            case 1: {
+                djui_hud_print_text("hihihihi im a fag and stuff", infoNavX + 5, infoNavY + 20, 0.3)
+                djui_hud_print_text("  lamo", infoNavX + 5, infoNavY + 30, 0.3)
+                djui_hud_print_text("(WIP) ma balls in your mouth", infoNavX + 5, infoNavY + infoNavHeight - 15, 0.3)
+                break
+            }
+            case 3: {
+                djui_hud_print_text("Latest Commit:", infoNavX + 5, infoNavY + 20, 0.3)
+                djui_hud_print_text(commitMsg, infoNavX + 5, infoNavY + 30, 0.3)
+                djui_hud_print_text(commitDate, infoNavX + 5, infoNavY + 40, 0.3)
+                break
+            }
+        }
 
         globalTimer = globalTimer + 1
     }
